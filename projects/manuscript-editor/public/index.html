@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2026 Ernie Braswell -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -52,6 +53,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
         margin-bottom: 12px;
       }
 
@@ -174,6 +177,13 @@
         accent-color: var(--accent);
       }
 
+      .copyright {
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-align: right;
+      }
+
       @media (max-width: 600px) {
         .app { margin: 12px auto; padding: 16px; }
         .header { align-items: flex-start; flex-direction: column; }
@@ -189,12 +199,8 @@
         <div class="status" id="status">Loading draft…</div>
       </div>
 
-      <div class="toolbar">
-        <button class="secondary" id="welcomeButton" type="button">Welcome guide</button>
-        <button id="saveButton" type="button">Save Draft</button>
-      </div>
-
       <textarea id="editor" aria-label="Manuscript editor"></textarea>
+      <footer class="copyright">Copyright © 2026 Ernie Braswell</footer>
     </div>
 
     <dialog id="welcomeDialog" aria-labelledby="welcomeTitle">
@@ -204,7 +210,8 @@
         <p class="welcome-intro">A quick guide to the manuscript editor. You can reopen this guide any time from the toolbar.</p>
         <ul class="guide-list">
           <li><strong>Write your manuscript</strong>Use the main editor area to draft and revise your text.</li>
-          <li><strong>Save your work</strong>Select <em>Save Draft</em> to save the manuscript on this computer.</li>
+          <li><strong>Open and save files</strong>Open a text or Markdown manuscript, then use Save or Save As to choose where it lives.</li>
+          <li><strong>Download a copy</strong>Select Download to export the current text to your Downloads folder.</li>
           <li><strong>Check save status</strong>The message beside the title shows whether your draft loaded or saved.</li>
         </ul>
         <div class="welcome-footer">

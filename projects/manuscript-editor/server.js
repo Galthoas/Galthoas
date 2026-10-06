@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Ernie Braswell
 const express = require('express');
 const path = require('path');
 const fs = require('fs');

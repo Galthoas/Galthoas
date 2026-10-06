@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('manuscriptFiles', {
     saveAs: options.saveAs === true,
     suggestedName: options.suggestedName
   }),
+  resolveClose: (shouldClose) => ipcRenderer.invoke('window:resolve-close', shouldClose),
   onMenuCommand: (callback) => {
     const listener = (_event, command) => callback(command);
     ipcRenderer.on('menu:file-command', listener);

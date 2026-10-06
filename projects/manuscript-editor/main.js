@@ -1,14 +1,16 @@
 // Copyright (c) 2026 Ernie Braswell
 const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron');
+const { once } = require('node:events');
 const path = require('path');
 const { startServer } = require('./server');
 const { readTextDocument, writeTextDocument } = require('./document-files');
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 0;
 let mainWindow;
 let activeFilePath = null;
+let allowWindowClose = false;
 
-function createWindow() {
+function createWindow(port) {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -23,10 +25,25 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadURL(`http://localhost:${PORT}`);
+  mainWindow.loadURL(`http://127.0.0.1:${port}`);
+
+  mainWindow.on('close', (event) => {
+    if (allowWindowClose) {
+      return;
+    }
+
+    if (mainWindow.webContents.isLoading()) {
+      allowWindowClose = true;
+      return;
+    }
+
+    event.preventDefault();
+    mainWindow.webContents.send('menu:file-command', 'close-request');
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+    allowWindowClose = false;
   });
 }
 
@@ -123,6 +140,17 @@ function registerFileHandlers() {
     return { canceled: false, filePath, fileName: path.basename(filePath), text };
   });
 
+  ipcMain.handle('window:resolve-close', (event, shouldClose) => {
+    if (!mainWindow || event.sender !== mainWindow.webContents) {
+      throw new Error('Close request came from an unexpected renderer.');
+    }
+
+    if (shouldClose === true) {
+      allowWindowClose = true;
+      mainWindow.close();
+    }
+  });
+
   ipcMain.handle('document:save', async (_event, { text, saveAs, suggestedName }) => {
     if (typeof text !== 'string') {
       throw new TypeError('Manuscript content must be text.');
@@ -152,20 +180,32 @@ function registerFileHandlers() {
   });
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   registerFileHandlers();
   createApplicationMenu();
-  startServer(PORT);
-  createWindow();
+  const server = startServer(PORT);
+  await once(server, 'listening');
+  const address = server.address();
+  if (!address || typeof address === 'string') {
+    throw new Error('Unable to determine the local manuscript server port.');
+  }
+  createWindow(address.port);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+      const address = server.address();
+      if (address && typeof address !== 'string') {
+        createWindow(address.port);
+      }
     }
   });
+}).catch((error) => {
+  console.error('Unable to start Manuscript Editor:', error);
+  app.quit();
 });
 
 app.on('window-all-closed', () => {
+  allowWindowClose = false;
   if (process.platform !== 'darwin') {
     app.quit();
   }

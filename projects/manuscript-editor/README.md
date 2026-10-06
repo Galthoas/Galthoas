@@ -16,8 +16,8 @@ npm install
 npm run desktop
 ```
 
-The desktop app supports Windows, macOS, and Linux. To run the web interface instead, use `npm start` and open `http://localhost:3000`.
+The desktop app supports Windows, macOS, and Linux. For local browser-only testing, run `npm start` and open `http://127.0.0.1:3000`. The local server binds to loopback and is not exposed to other network devices.
 
 In the desktop app, use the native **File** menu in the application menu bar to open a `.txt` or Markdown document, save it, choose a new location with **Save As**, or download a `.txt` copy. **Save** prompts for a location the first time and then saves to that file. The editor page stays uncluttered; document actions are in the desktop application's top menu bar.
 
-The welcome guide appears on first launch; use its checkbox to keep it hidden on later launches. Reopen it with the **Welcome guide** button.
+The welcome guide appears on first launch; use its checkbox to keep it hidden on later launches. Reopen it from **Help → Welcome guide**. If you close the desktop window with unsaved changes, choose to save, discard, or cancel.

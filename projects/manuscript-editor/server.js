@@ -7,7 +7,7 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const manuscriptPath = path.join(__dirname, 'data', 'manuscript.txt');
 
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const defaultText = `# Draft Manuscript\n\nStart writing here...`;

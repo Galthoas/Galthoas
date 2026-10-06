@@ -9,8 +9,10 @@ const PORT = Number(process.env.PORT) || 0;
 let mainWindow;
 let activeFilePath = null;
 let allowWindowClose = false;
+let localServerOrigin = null;
 
 function createWindow(port) {
+  localServerOrigin = `http://127.0.0.1:${port}`;
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -25,7 +27,20 @@ function createWindow(port) {
     }
   });
 
-  mainWindow.loadURL(`http://127.0.0.1:${port}`);
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+    try {
+      if (new URL(navigationUrl).origin !== localServerOrigin) {
+        event.preventDefault();
+      }
+    } catch {
+      event.preventDefault();
+    }
+  });
+
+  mainWindow.loadURL(localServerOrigin).catch((error) => {
+    console.error('Unable to load the manuscript editor window:', error);
+  });
 
   mainWindow.on('close', (event) => {
     if (allowWindowClose) {
@@ -123,7 +138,25 @@ function createApplicationMenu() {
 }
 
 function registerFileHandlers() {
-  ipcMain.handle('document:open', async () => {
+  const assertTrustedRenderer = (event) => {
+    if (!mainWindow || event.sender !== mainWindow.webContents) {
+      throw new Error('Request came from an unexpected renderer.');
+    }
+
+    let senderOrigin;
+    try {
+      senderOrigin = new URL(event.senderFrame.url).origin;
+    } catch {
+      throw new Error('Request came from an untrusted origin.');
+    }
+
+    if (senderOrigin !== localServerOrigin) {
+      throw new Error('Request came from an untrusted origin.');
+    }
+  };
+
+  ipcMain.handle('document:open', async (event) => {
+    assertTrustedRenderer(event);
     const result = await dialog.showOpenDialog(mainWindow, {
       title: 'Open manuscript',
       properties: ['openFile'],
@@ -141,9 +174,7 @@ function registerFileHandlers() {
   });
 
   ipcMain.handle('window:resolve-close', (event, shouldClose) => {
-    if (!mainWindow || event.sender !== mainWindow.webContents) {
-      throw new Error('Close request came from an unexpected renderer.');
-    }
+    assertTrustedRenderer(event);
 
     if (shouldClose === true) {
       allowWindowClose = true;
@@ -151,7 +182,8 @@ function registerFileHandlers() {
     }
   });
 
-  ipcMain.handle('document:save', async (_event, { text, saveAs, suggestedName }) => {
+  ipcMain.handle('document:save', async (event, { text, saveAs, suggestedName }) => {
+    assertTrustedRenderer(event);
     if (typeof text !== 'string') {
       throw new TypeError('Manuscript content must be text.');
     }

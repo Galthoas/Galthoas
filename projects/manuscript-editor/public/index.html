@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manuscript Editor</title>
+    <style>
+      :root {
+        --bg: #f4f1eb;
+        --panel: #fffdf9;
+        --border: #d3c7b4;
+        --text: #1f1b18;
+        --muted: #6d625a;
+        --accent: #866f5a;
+        --accent-dark: #5d4d3d;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .app {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 24px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 12px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      button {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 18px;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--accent-dark);
+      }
+
+      button.secondary {
+        background: transparent;
+        color: var(--accent-dark);
+        border: 1px solid var(--border);
+      }
+
+      button.secondary:hover {
+        background: #eee8de;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 520px;
+        resize: vertical;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--panel);
+        color: var(--text);
+        font-size: 1.05rem;
+        line-height: 1.6;
+      }
+
+      dialog {
+        width: min(620px, calc(100% - 32px));
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        color: var(--text);
+        background: var(--panel);
+        box-shadow: 0 24px 80px rgb(31 27 24 / 28%);
+      }
+
+      dialog::backdrop {
+        background: rgb(31 27 24 / 48%);
+        backdrop-filter: blur(3px);
+      }
+
+      .welcome-content {
+        padding: 30px;
+      }
+
+      .welcome-eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .welcome-content h2 {
+        margin: 0 0 10px;
+        font-size: 1.8rem;
+      }
+
+      .welcome-intro {
+        margin: 0 0 22px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .guide-list {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .guide-list li {
+        padding: 13px 15px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        line-height: 1.45;
+      }
+
+      .guide-list strong {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      .welcome-footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 22px;
+      }
+
+      .remember-choice {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .remember-choice input {
+        margin-top: 3px;
+        accent-color: var(--accent);
+      }
+
+      @media (max-width: 600px) {
+        .app { margin: 12px auto; padding: 16px; }
+        .header { align-items: flex-start; flex-direction: column; }
+        .welcome-content { padding: 22px; }
+        .welcome-footer { align-items: stretch; flex-direction: column; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="header">
+        <h1>Manuscript Editor</h1>
+        <div class="status" id="status">Loading draft…</div>
+      </div>
+
+      <div class="toolbar">
+        <button class="secondary" id="welcomeButton" type="button">Welcome guide</button>
+        <button id="saveButton" type="button">Save Draft</button>
+      </div>
+
+      <textarea id="editor" aria-label="Manuscript editor"></textarea>
+    </div>
+
+    <dialog id="welcomeDialog" aria-labelledby="welcomeTitle">
+      <div class="welcome-content">
+        <p class="welcome-eyebrow">Welcome</p>
+        <h2 id="welcomeTitle">Your writing space, ready.</h2>
+        <p class="welcome-intro">A quick guide to the manuscript editor. You can reopen this guide any time from the toolbar.</p>
+        <ul class="guide-list">
+          <li><strong>Write your manuscript</strong>Use the main editor area to draft and revise your text.</li>
+          <li><strong>Save your work</strong>Select <em>Save Draft</em> to save the manuscript on this computer.</li>
+          <li><strong>Check save status</strong>The message beside the title shows whether your draft loaded or saved.</li>
+        </ul>
+        <div class="welcome-footer">
+          <label class="remember-choice">
+            <input id="dontShowWelcome" type="checkbox" />
+            <span>Don't show this welcome guide again</span>
+          </label>
+          <button id="startWritingButton" type="button">Start writing</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
